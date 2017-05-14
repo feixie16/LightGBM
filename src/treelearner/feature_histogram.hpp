@@ -317,8 +317,8 @@ private:
       double sum_left_hessian = kEpsilon;
       data_size_t left_count = 0;
 
-      int t = 1 - bias;
-      const int t_end = meta_->num_bin - 1 - bias;
+      int t = 0;
+      const int t_end = meta_->num_bin - 2 - bias;
 
       // from right to left, and we don't need data in bin0
       for (; t <= t_end; ++t) {
