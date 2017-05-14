@@ -179,8 +179,14 @@ void BinMapper::FindBin(double* values, int num_sample_values, size_t total_samp
       // update bin upper bound
       bin_upper_bound_ = std::vector<double>(bin_cnt);
       num_bin_ = bin_cnt;
+      bool is_many_zeros = (static_cast<double>(zero_cnt) / total_sample_cnt) > 0.1;
       for (int i = 0; i < bin_cnt - 1; ++i) {
         bin_upper_bound_[i] = (upper_bounds[i] + lower_bounds[i + 1]) / 2.0f;
+        if (upper_bounds[i] == 0 && is_many_zeros) {
+          bin_upper_bound_[i] = kEpsilon;
+        } else if (lower_bounds[i + 1] == 0 && is_many_zeros) {
+          bin_upper_bound_[i] = -kEpsilon;
+        }
       }
       // last bin upper bound
       bin_upper_bound_[bin_cnt - 1] = std::numeric_limits<double>::infinity();
