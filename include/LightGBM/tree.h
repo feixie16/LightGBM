@@ -52,7 +52,7 @@ public:
   int Split(int leaf, int feature, BinType bin_type, uint32_t threshold, int real_feature, 
             double threshold_double, double left_value, double right_value, 
             data_size_t left_cnt, data_size_t right_cnt, double gain,
-            uint32_t zero_bin, uint32_t default_bin, double default_value);
+            uint32_t zero_bin, uint32_t default_bin_for_zero, double default_value);
 
   /*! \brief Get the output of one leaf */
   inline double LeafOutput(int leaf) const { return leaf_value_[leaf]; }
@@ -201,7 +201,7 @@ private:
   /*! \brief Default values for the na/0 feature values */
   std::vector<double> default_value_;
   std::vector<uint32_t> zero_bin_;
-  std::vector<uint32_t> default_bin_;
+  std::vector<uint32_t> default_bin_for_zero_;
   /*! \brief A non-leaf node's split gain */
   std::vector<double> split_gain_;
   // used for leaf node

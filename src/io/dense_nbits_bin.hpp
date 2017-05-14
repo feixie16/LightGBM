@@ -227,7 +227,7 @@ public:
   }
 
   virtual data_size_t Split(
-    uint32_t min_bin, uint32_t max_bin, uint32_t default_bin,
+    uint32_t min_bin, uint32_t max_bin, uint32_t default_bin, uint32_t default_bin_for_zero,
     uint32_t threshold, data_size_t* data_indices, data_size_t num_data,
     data_size_t* lte_indices, data_size_t* gt_indices, BinType bin_type) const override {
     if (num_data <= 0) { return 0; }
@@ -242,7 +242,7 @@ public:
     data_size_t* default_indices = gt_indices;
     data_size_t* default_count = &gt_count;
     if (bin_type == BinType::NumericalBin) {
-      if (default_bin <= threshold) {
+      if (default_bin_for_zero <= threshold) {
         default_indices = lte_indices;
         default_count = &lte_count;
       }
@@ -258,7 +258,7 @@ public:
         }
       }
     } else {
-      if (default_bin == threshold) {
+      if (default_bin_for_zero == threshold) {
         default_indices = lte_indices;
         default_count = &lte_count;
       }

@@ -33,7 +33,7 @@ Tree::Tree(int max_leaves)
   decision_type_.resize(max_leaves_ - 1);
   default_value_.resize(max_leaves_ - 1);
   zero_bin_.resize(max_leaves_ - 1);
-  default_bin_.resize(max_leaves_ - 1);
+  default_bin_for_zero_.resize(max_leaves_ - 1);
   split_gain_.resize(max_leaves_ - 1);
   leaf_parent_.resize(max_leaves_);
   leaf_value_.resize(max_leaves_);
@@ -54,7 +54,7 @@ Tree::~Tree() {
 
 int Tree::Split(int leaf, int feature, BinType bin_type, uint32_t threshold_bin, int real_feature, double threshold_double, 
                 double left_value, double right_value, data_size_t left_cnt, data_size_t right_cnt, double gain,
-                uint32_t zero_bin, uint32_t default_bin, double default_value) {
+                uint32_t zero_bin, uint32_t default_bin_for_zero, double default_value) {
   int new_node_idx = num_leaves_ - 1;
   // update parent info
   int parent = leaf_parent_[leaf];
@@ -76,7 +76,7 @@ int Tree::Split(int leaf, int feature, BinType bin_type, uint32_t threshold_bin,
     decision_type_[new_node_idx] = 1;
   }
   zero_bin_[new_node_idx] = zero_bin;
-  default_bin_[new_node_idx] = default_bin;
+  default_bin_for_zero_[new_node_idx] = default_bin_for_zero;
   default_value_[new_node_idx] = default_value;
 
   threshold_in_bin_[new_node_idx] = threshold_bin;
@@ -118,7 +118,7 @@ void Tree::AddPredictionToScore(const Dataset* data, data_size_t num_data, doubl
         for (data_size_t i = start; i < end; ++i) {
           int node = 0;
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(i), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(i), zero_bin_[node], default_bin_for_zero_[node]);
             if (inner_decision_funs[decision_type_[node]](
               fval,
               threshold_in_bin_[node])) {
@@ -141,7 +141,7 @@ void Tree::AddPredictionToScore(const Dataset* data, data_size_t num_data, doubl
         for (data_size_t i = start; i < end; ++i) {
           int node = 0;
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(i), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(i), zero_bin_[node], default_bin_for_zero_[node]);
             if (inner_decision_funs[decision_type_[node]](
               fval,
               threshold_in_bin_[node])) {
@@ -167,7 +167,7 @@ void Tree::AddPredictionToScore(const Dataset* data, data_size_t num_data, doubl
         for (data_size_t i = start; i < end; ++i) {
           int node = 0;
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(i), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(i), zero_bin_[node], default_bin_for_zero_[node]);
             if (fval <= threshold_in_bin_[node]) {
               node = left_child_[node];
             } else {
@@ -188,7 +188,7 @@ void Tree::AddPredictionToScore(const Dataset* data, data_size_t num_data, doubl
         for (data_size_t i = start; i < end; ++i) {
           int node = 0;
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(i), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(i), zero_bin_[node], default_bin_for_zero_[node]);
             if (fval <= threshold_in_bin_[node]) {
               node = left_child_[node];
             } else {
@@ -220,7 +220,7 @@ void Tree::AddPredictionToScore(const Dataset* data,
           int node = 0;
           const data_size_t idx = used_data_indices[i];
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(idx), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(idx), zero_bin_[node], default_bin_for_zero_[node]);
             if (inner_decision_funs[decision_type_[node]](
               fval,
               threshold_in_bin_[node])) {
@@ -244,7 +244,7 @@ void Tree::AddPredictionToScore(const Dataset* data,
           const data_size_t idx = used_data_indices[i];
           int node = 0;
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(idx), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(idx), zero_bin_[node], default_bin_for_zero_[node]);
             if (inner_decision_funs[decision_type_[node]](
               fval,
               threshold_in_bin_[node])) {
@@ -271,7 +271,7 @@ void Tree::AddPredictionToScore(const Dataset* data,
           int node = 0;
           const data_size_t idx = used_data_indices[i];
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(idx), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[node]->Get(idx), zero_bin_[node], default_bin_for_zero_[node]);
             if (fval <= threshold_in_bin_[node]) {
               node = left_child_[node];
             } else {
@@ -293,7 +293,7 @@ void Tree::AddPredictionToScore(const Dataset* data,
           const data_size_t idx = used_data_indices[i];
           int node = 0;
           while (node >= 0) {
-            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(idx), zero_bin_[node], default_bin_[node]);
+            uint32_t fval = DefaultValueForZero<uint32_t>(iter[split_feature_inner_[node]]->Get(idx), zero_bin_[node], default_bin_for_zero_[node]);
             if (fval <= threshold_in_bin_[node]) {
               node = left_child_[node];
             } else {
