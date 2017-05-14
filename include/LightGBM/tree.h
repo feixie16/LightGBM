@@ -145,9 +145,9 @@ public:
   }
 
   template<typename T>
-  static T DefaultValueForZero(T fval, T zero, T default) {
+  static T DefaultValueForZero(T fval, T zero, T out) {
     if (fval == zero) {
-      return default;
+      return out;
     } else {
       return fval;
     }
