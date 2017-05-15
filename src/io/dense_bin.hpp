@@ -195,8 +195,10 @@ public:
     VAL_T th = static_cast<VAL_T>(threshold + min_bin);
     VAL_T minb = static_cast<VAL_T>(min_bin);
     VAL_T maxb = static_cast<VAL_T>(max_bin);
+    VAL_T t_default_bin = static_cast<VAL_T>(min_bin + default_bin);
     if (default_bin == 0) {
       th -= 1;
+      t_default_bin -= 1;
     }
     data_size_t lte_count = 0;
     data_size_t gt_count = 0;
@@ -210,7 +212,7 @@ public:
       for (data_size_t i = 0; i < num_data; ++i) {
         const data_size_t idx = data_indices[i];
         VAL_T bin = data_[idx];
-        if (bin > maxb || bin < minb) {
+        if ( bin < minb || bin > maxb || t_default_bin == bin) {
           default_indices[(*default_count)++] = idx;
         } else if (bin > th) {
           gt_indices[gt_count++] = idx;
@@ -226,7 +228,7 @@ public:
       for (data_size_t i = 0; i < num_data; ++i) {
         const data_size_t idx = data_indices[i];
         VAL_T bin = data_[idx];
-        if (bin > maxb || bin < minb) {
+        if (bin < minb || bin > maxb || t_default_bin == bin) {
           default_indices[(*default_count)++] = idx;
         } else if (bin != th) {
           gt_indices[gt_count++] = idx;

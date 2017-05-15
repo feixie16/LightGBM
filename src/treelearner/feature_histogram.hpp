@@ -88,8 +88,10 @@ public:
     if (static_cast<int>(meta_->default_bin) > 0 && static_cast<int>(meta_->default_bin) < meta_->num_bin - 1) {
       FindBestThresholdSequence(sum_gradient, sum_hessian, num_data, min_gain_shift, output, meta_->default_bin);
     }
-    FindBestThresholdSequence(sum_gradient, sum_hessian, num_data, min_gain_shift, output, meta_->num_bin - 1);
-    output->gain -= gain_shift;
+    if (meta_->num_bin > 2) {
+      FindBestThresholdSequence(sum_gradient, sum_hessian, num_data, min_gain_shift, output, meta_->num_bin - 1);
+    }
+    output->gain -= min_gain_shift;
   }
 
   void FindBestThresholdCategorical(double sum_gradient, double sum_hessian, data_size_t num_data,
@@ -188,7 +190,7 @@ public:
       output->right_count = num_data - best_left_count;
       output->right_sum_gradient = sum_gradient - best_sum_left_gradient;
       output->right_sum_hessian = sum_hessian - best_sum_left_hessian - kEpsilon;
-      output->gain = best_gain - gain_shift;
+      output->gain = best_gain - min_gain_shift;
     } 
   }
 
@@ -275,7 +277,7 @@ private:
       for (; t >= t_end; --t) {
 
         // need to skip default bin
-        if (skip_default_bin && (t + bias) == static_cast<int>(default_bin_for_zero)) { continue; }
+        if (skip_default_bin && (t + bias) == static_cast<int>(meta_->default_bin)) { continue; }
 
         sum_right_gradient += data_[t].sum_gradients;
         sum_right_hessian += data_[t].sum_hessians;
@@ -324,7 +326,7 @@ private:
       for (; t <= t_end; ++t) {
 
         // need to skip default bin
-        if (skip_default_bin && (t + bias) == static_cast<int>(default_bin_for_zero)) { continue; }
+        if (skip_default_bin && (t + bias) == static_cast<int>(meta_->default_bin)) { continue; }
 
         sum_left_gradient += data_[t].sum_gradients;
         sum_left_hessian += data_[t].sum_hessians;
@@ -336,7 +338,7 @@ private:
         // if data not enough
         if (right_count < meta_->tree_config->min_data_in_leaf) break;
 
-        double sum_right_hessian = sum_hessian - sum_left_gradient;
+        double sum_right_hessian = sum_hessian - sum_left_hessian;
         // if sum hessian too small
         if (sum_right_hessian < meta_->tree_config->min_sum_hessian_in_leaf) break;
 
